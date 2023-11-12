@@ -46,7 +46,7 @@ module Parser =
     let private astList = 
         skipChar '(' >>. spaces >>.
         (attempt (sepBy astOper spaces) <|> sepEndBy1 astOper spaces)
-        .>> spaces .>> skipChar ')'
+        .>> spaces .>> skipChar ')' .>> spaces
         |>> AstList
 
     astOperRef.Value <- 
