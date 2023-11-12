@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Parser\Parser.fsproj" />
+    <PackageReference Include="FParsec" Version="1.1.1" />
   </ItemGroup>
 
 </Project>

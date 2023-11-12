@@ -8,11 +8,20 @@ type Ast =
     | AstString of string // "string"
     | AstKeyword of string // defun, let
     | AstVariable of string // fibonacchi/N/wtf - everything that is not a string or a keyword
-    | AstOper of List<Ast>
+    | AstList of List<Ast>
 
 
 
 module Parser =
+    // For parser tracing
+    let (<!>) (p: Parser<_,_>) label : Parser<_,_> =
+        fun stream ->
+            printfn "%A (%c %c): Entering %s" stream.Position (stream.Peek2().Char0) (stream.Peek2().Char1) label
+            let reply = p stream
+            printfn "%A (%c %c): Leaving %s (%A)" stream.Position (stream.Peek2().Char0) (stream.Peek2().Char1) label reply.Status
+            reply
+
+
     let private astBoolTrue = stringReturn "true" <| AstBool true .>> spaces
     let private astBoolFalse = stringReturn "false" <| AstBool true .>> spaces
     let private astBool = astBoolFalse <|> astBoolTrue
@@ -30,33 +39,27 @@ module Parser =
 
     let private astKeyword = astKeywordDefun <|> astKeywordLet
 
-    let private astVariable = (skipChar ' ' |> anyStringBetween <| skipChar ' ') .>> spaces |>> AstVariable
+    let private astVariable = many1Chars (noneOf "\"\\ ()") .>> spaces |>> AstVariable
 
-    let private astLiterals =
+    let astOper, astOperRef = createParserForwardedToRef()
+
+    let private astList = 
+        skipChar '(' >>. spaces >>.
+        (attempt (sepBy astOper spaces) <|> sepEndBy1 astOper spaces)
+        .>> spaces .>> skipChar ')'
+        |>> AstList
+
+    astOperRef.Value <- 
         choice [
             astBool
             astNumber
             astString
+            attempt astList
             attempt astKeyword
             astVariable
         ]
 
-    let astOper, astOperRef = createParserForwardedToRef()
-
-    let private manyContained popen pclose psep p = between popen pclose <| sepBy p psep
-
-    do astOperRef := 
-        choice [
-            attempt astLiterals
-            astOper
-        ]
-        |> manyContained
-            (skipChar '(' .>> spaces)
-                    (skipChar ')' .>> spaces)
-                    (skipChar ' ' .>> spaces)
-        |>> AstOper
-
-    let private astFullParser = spaces >>. many astOper .>> eof |>> AstOper
+    let private astFullParser = spaces >>. many astOper .>> eof |>> AstList
 
     let ParseString (s: string): Result<Ast, string> =
         match run astFullParser s with
