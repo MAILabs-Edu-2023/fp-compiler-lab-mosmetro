@@ -23,7 +23,7 @@ module Parser =
 
 
     let private astBoolTrue = stringReturn "true" <| AstBool true .>> spaces
-    let private astBoolFalse = stringReturn "false" <| AstBool true .>> spaces
+    let private astBoolFalse = stringReturn "false" <| AstBool false .>> spaces
     let private astBool = astBoolFalse <|> astBoolTrue
 
     let private astNumber =  pfloat .>> spaces |>> AstNumber
