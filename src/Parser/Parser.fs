@@ -2,13 +2,16 @@
 
 open FParsec
 
+// Simple FParsec-based parser
+// Not the most obious code (lib has a very rich API), but it's quite elegant and functional
+
 type Ast = 
     | AstBool of bool // true/false
     | AstNumber of float // 42/6.9
     | AstString of string // "string"
     | AstKeyword of string // defun, let
     | AstVariable of string // fibonacchi/N/wtf - everything that is not a string or a keyword
-    | AstList of List<Ast>
+    | AstList of List<Ast> // Not an actual list as a data structure, just AST abstaction
 
 
 
