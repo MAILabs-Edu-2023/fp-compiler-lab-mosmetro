@@ -5,7 +5,7 @@ open Parser
 module Interpreter = 
 
     // Описание операций
-    let public funof = function
+    let private funof = function
         | "+" -> (function 
                     | [AstNumber(a); AstNumber(b)] -> AstNumber(a + b)
                     | [AstString(a); AstString(b)] -> AstString(a + b)
@@ -71,6 +71,15 @@ module Interpreter =
              | _ -> 
                 AstList(List.map (fun item -> eval item env) lst))
 
-    let launch = function
-        | Result.Ok(tree) -> eval tree Map.empty
+    let rec public AstToString = function
+    | AstBool(b) -> string b
+    | AstNumber(n) -> string n
+    | AstList(l) -> "(" + (List.fold (fun acc item -> acc + AstToString item + " ") " " l) + ")"
+    | AstString(s) | AstKeyword(s) | AstVariable(s) -> s  // Already string types.
+
+    let public launch = function
+        | Result.Ok(tree) ->
+            match eval tree Map.empty with
+            | AstList(lst) -> AstToString lst.Head
+            | _ -> failwith "Unexpected type of interpretation result"
         | Result.Error(err) -> failwith err
