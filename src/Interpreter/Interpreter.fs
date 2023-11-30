@@ -1,4 +1,5 @@
-﻿open System
+﻿namespace Interpreter
+
 open Parser
 
 module Interpreter = 
@@ -73,24 +74,3 @@ module Interpreter =
     let launch = function
         | Result.Ok(tree) -> eval tree Map.empty
         | Result.Error(err) -> failwith err
-
-
-[<EntryPoint>]
-let main _ =
-    let parsedString = Parser.ParseString("(defun (fibonacci) (N)
-    (if (or (= N 0) (= N 1))
-        1
-        (+ fibonacci (- N 1 F2) fibonacci (- N 2))))
-    (print (fibonacci 5))")
-
-    let test =  Parser.ParseString("(and (= (+ (+ 1 2) (- 8 6)) 5) true)")
-    let result = Interpreter.launch test
-
-    match test with
-    | Result.Ok(res) -> printfn "%A" res
-    | Result.Error(err) -> printfn "%s" err
-    printf "%A" result
-
-    //Interpreter.launch parsedString |> ignore
-
-    0
