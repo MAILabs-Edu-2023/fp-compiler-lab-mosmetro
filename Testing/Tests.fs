@@ -27,3 +27,12 @@ let ``Testing of list output`` () =
     let test =  Parser.ParseString("( 1 2 3 4 5 )")
     let result = Interpreter.launch test
     Assert.Equal(result |> string, "( 1 2 3 4 5 )")
+
+[<Fact>]
+let ``Testing of let operator`` () =
+    let test =  Parser.ParseString("(
+    (let x 5)
+    x
+    )")
+    let result = Interpreter.launch test
+    Assert.Equal(result |> string, "5")

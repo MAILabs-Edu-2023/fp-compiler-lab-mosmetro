@@ -50,17 +50,17 @@ module Interpreter =
         | AstBool(b) -> AstBool(b)
         | AstNumber(n) -> AstNumber(n)
         | AstString(s) -> AstString(s)
-        | AstKeyword(v) ->
-            (match v with
-             | "defun" -> AstKeyword(v) // Implement additional logic
-             | "let" -> AstKeyword(v)
-             | _ -> failwith <| sprintf "Unsupported keyword '%s'" v)
         | AstVariable(x) ->
             (match Map.tryFind x env with
              | Some(value) -> value
-             | None -> AstVariable(x)) // Implement additional logic
+             | None -> failwith "Variable not found") // Implement additional logic
         | AstList(lst) ->
             (match lst with
+             | AstKeyword("let") :: varName :: rawOperators ->
+                let value = eval (AstList rawOperators) env
+                Map.add (string varName) value env |> ignore
+                AstVariable(string varName)
+                // let a = (+ (+ 1 2) (+ 3 4))
              | AstVariable(operation) :: elements ->
                 let astResults = List.map (fun item -> eval item env) elements
                 funof operation astResults
@@ -70,6 +70,7 @@ module Interpreter =
                  else eval falseBranch env
              | _ -> 
                 AstList(List.map (fun item -> eval item env) lst))
+        | _ -> failwith "Undefined behaviour"
 
     let rec public AstToString = function
     | AstBool(b) -> string b
