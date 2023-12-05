@@ -44,7 +44,7 @@ module Parser =
 
     let private astKeyword = astKeywordDefun <|> astKeywordLet <|> astKeywordIf
 
-    let private astVariable = many1Chars (noneOf "\"\\ ()") .>> spaces |>> AstVariable
+    let private astVariable = many1Chars (noneOf "\"\\ ()\n") .>> spaces |>> AstVariable
 
     let astOper, astOperRef = createParserForwardedToRef()
 
