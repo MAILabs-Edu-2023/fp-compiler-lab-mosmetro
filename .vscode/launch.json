@@ -8,9 +8,9 @@
             "name": ".NET Core Launch (console)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "Build: App.fsproj",
+            "preLaunchTask": "build",
             "program": "${workspaceFolder}/src/App/bin/Debug/net7.0/App.dll",
-            "args": ["/home/keddad/Documents/Code/fp-compiler-lab-mosmetro/examples/let.xxx"],
+            "args": ["/home/keddad/Documents/Code/fp-compiler-lab-mosmetro/examples/fib.xxx"],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
             "console": "internalConsole"

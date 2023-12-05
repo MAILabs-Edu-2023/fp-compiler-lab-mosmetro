@@ -4,16 +4,14 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "msbuild",
-            "problemMatcher": [
-                "$msCompile"
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/fp-compiler-lab-mosmetro.sln"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "label": "Build: App.fsproj",
-            "detail": "Build the App.fsproj project using dotnet build",
+            "problemMatcher": "$msCompile"
         }
     ],
   }
