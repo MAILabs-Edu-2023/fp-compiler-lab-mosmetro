@@ -79,9 +79,9 @@ module Interpreter =
              | _ -> AstList(List.map (fun item -> eval item env) lst))
         | _ -> failwith "Undefined behaviour"
 
-    let public launch = function
-        | Result.Ok(tree) ->
-            match eval tree Map.empty with
-            | AstList(lst) -> AstToString lst.Head
-            | _ -> failwith "Unexpected type of interpretation result"
-        | Result.Error(err) -> failwith err
+    let public Launch = fun tree ->
+        let evalRes = eval tree Map.empty
+
+        match evalRes with
+        | AstList(lst) -> AstToString lst.Head
+        | _ -> failwith "Interpretation errorW"
