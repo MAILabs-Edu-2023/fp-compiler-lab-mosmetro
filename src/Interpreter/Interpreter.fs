@@ -96,7 +96,11 @@ module Interpreter =
                         let astResults = List.map (fun item -> eval item variableEnv) elements
                         funof operation astResults
 
-                | _ -> MList(List.map (fun item -> eval item variableEnv) lst)
+                | _ -> 
+                    if lst.Length = 1 then
+                        eval lst.Head variableEnv
+                    else
+                        failwith "Undefined behaviour"
             )
 
         | _ -> failwith "Undefined behaviour"
