@@ -4,11 +4,11 @@ open Parser
 
 module Interpreter = 
 
-    type IntepretedType = 
+    type MObject = 
         | MBool of bool
         | MNumber of float
         | MString of string
-        | MList of IntepretedType list
+        | MList of MObject list
 
     let rec private interpretedTypeToString = function
         | MBool(b) -> if b then "True" else "False"
@@ -16,8 +16,20 @@ module Interpreter =
         | MString(s) -> s
         | MList(l) -> "(" + (l |> List.map(fun el -> interpretedTypeToString el) |> String.concat " ")  + ")"
 
-    type Variable = {value: IntepretedType}
-    type Function = {args: string list; ast: Parser.Ast}
+    type StateObject =
+        | VariableState of value: MObject
+        | FunctionState of args: string list * ast: Ast * capturedState: Map<string, StateObject>
+
+    // Convert AstList<AstVariable> to string list
+    let rec private processFunArgs = fun lst ->
+        let varToStr = fun var ->
+            match var with
+                | AstVariable(v) -> v
+                | _ -> failwith "Expexted AstVariable in fun variable declaration list"
+
+        match lst with
+            | AstList(ls) -> ls |> List.map varToStr
+            | _ -> failwith "Expected AstList for variable delcaration"
 
     // Operators translation.
     let private funof = function
@@ -59,51 +71,97 @@ module Interpreter =
                     | _ -> failwith "Invalid arguments for and to check")
         | _ -> failwith "Unsupported operator was given"
 
+
     // Main interpreter logic.
-    let rec private eval exp variableEnv =
+    let rec private eval exp stateEnv =
         match exp with
         | AstBool(b) -> MBool(b)
         | AstNumber(n) -> MNumber(n)
         | AstString(s) -> MString(s)
 
         | AstVariable(x) ->
-            (match Map.tryFind x variableEnv with
-             | Some(value) -> value
-             | None -> failwith "Variable not found")
+            (match Map.tryFind x stateEnv with
+             | Some(value) -> 
+                match value with
+                    | VariableState(v) -> v
+                    | FunctionState(_) -> executeFun value (MList []) stateEnv
+             | None -> failwith "Variable or function not found")
 
         | AstList(lst) ->
             (
                 match lst with
                 | AstKeyword("let") :: varName :: rawOperators :: innerCodeArea ->
-                    let value = eval rawOperators variableEnv
+                    let value = eval rawOperators stateEnv
                     
                     match varName with
-                        | AstVariable(varName) -> eval (AstList innerCodeArea) (Map.add varName value variableEnv)
+                        | AstVariable(varName) -> eval (AstList innerCodeArea) (Map.add varName (VariableState value) stateEnv)
                         | _ -> failwith "Variable name must be AstVariable"
 
+                | AstKeyword("defun") :: funName :: funVariables :: funcitonBody :: innerCodeArea ->
+                    let variables = processFunArgs funVariables // nothing fun about that
+
+                    match funName with
+                        | AstVariable(funName) -> eval (AstList innerCodeArea) (Map.add funName (FunctionState(variables, funcitonBody, stateEnv)) stateEnv)
+                        | _ -> failwith "Function name name must be AstVariable"
+
                 | AstKeyword("if") :: condition :: trueBranch :: falseBranch :: [] ->
-                    let evalCondition = eval condition variableEnv
+                    let evalCondition = eval condition stateEnv
                     
                     if evalCondition = MBool(true) then 
-                        eval trueBranch variableEnv
+                        eval trueBranch stateEnv
                     else 
-                        eval falseBranch variableEnv
+                        eval falseBranch stateEnv
 
                 | AstVariable(operation) :: elements ->
                     if elements.IsEmpty then
-                        eval (AstVariable operation) variableEnv
+                        eval (AstVariable operation) stateEnv
                     else
-                        let astResults = List.map (fun item -> eval item variableEnv) elements
-                        funof operation astResults
+                        let astResults = List.map (fun item -> eval item stateEnv) elements
+
+                        match Map.tryFind operation stateEnv with
+                        | Some(value) -> 
+                            match value with
+                                | VariableState(v) -> failwith "Undeclared list? UB?"
+                                | FunctionState(_) -> executeFun value (MList astResults) stateEnv
+                        | None -> funof operation astResults
+                        
 
                 | _ -> 
                     if lst.Length = 1 then
-                        eval lst.Head variableEnv
+                        eval lst.Head stateEnv
                     else
-                        failwith "Undefined behaviour"
+                        MList(List.map (fun item -> eval item stateEnv) lst)
             )
 
         | _ -> failwith "Undefined behaviour"
+
+    and private executeFun funObj args stateEnv = 
+        let rec zip (a:'a list , b:'b list) : list<'a * 'b> =
+            if List.length a = 1 then [List.head a , List.head b]
+            else (List.head a, List.head b) :: zip (List.tail a , List.tail b) 
+
+        let rec insertArgs (args: (string * MObject) list, state: Map<string, StateObject>) = 
+            if args.IsEmpty then
+                state
+            else
+                let (st, obj) = args.Head
+
+                insertArgs (args.Tail, Map.add st (VariableState obj) state)
+            
+        match funObj with
+        | FunctionState(funArgs, funAst, capturedState) ->
+            match args with
+            | MList(args) ->
+                let mergedState = Map.fold (fun acc key value -> Map.add key value acc) capturedState stateEnv
+
+                if args.Length <> funArgs.Length then
+                    failwith "Incorrect number of function arguments"
+                else
+                    let evalState = insertArgs (zip (funArgs, args), mergedState)
+                    eval funAst evalState
+            | _ -> failwith "Undefined Behaviour"
+        | _ ->
+            failwith "Undefined Behaviour"
 
     let public Launch = fun tree ->
         let evalRes = eval tree Map.empty
