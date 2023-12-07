@@ -39,10 +39,11 @@ module Parser =
 
     let private astKeywordDefun = stringReturn "defun" <| AstKeyword "defun" .>> spaces
     let private astKeywordLet = stringReturn "let" <| AstKeyword "let" .>> spaces
+    let private astKeywordList = stringReturn "list" <| AstKeyword "list" .>> spaces
 
     let private astKeywordIf = stringReturn "if" <| AstKeyword "if" .>> spaces
 
-    let private astKeyword = astKeywordDefun <|> astKeywordLet <|> astKeywordIf
+    let private astKeyword = astKeywordDefun <|> astKeywordLet <|> astKeywordList <|> astKeywordIf
 
     let private astVariable = many1Chars (noneOf "\"\\ ()\n") .>> spaces |>> AstVariable
 

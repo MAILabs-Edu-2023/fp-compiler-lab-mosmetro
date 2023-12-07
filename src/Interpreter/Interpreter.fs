@@ -112,6 +112,16 @@ module Interpreter =
                     else 
                         eval falseBranch stateEnv
 
+                | AstKeyword("list") :: expressions ->
+                    let rec evalList expressions stateEnv acc =
+                        match expressions with
+                        | [] -> MList(acc)
+                        | exp :: rest ->
+                            let evaluated = eval exp stateEnv
+                            evalList rest stateEnv (acc @ [evaluated]) // Adding every calculated value to accumulator.
+
+                    evalList expressions stateEnv []
+
                 | AstVariable(operation) :: elements ->
                     if elements.IsEmpty then
                         eval (AstVariable operation) stateEnv
