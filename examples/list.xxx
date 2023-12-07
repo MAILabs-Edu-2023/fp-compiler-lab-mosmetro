@@ -1,23 +1,23 @@
 (
-    (defun fib (N) (
-        (if (or (= N 0) (= N 1)) 
-            1 
-            (
-                (let f1 (fib (- N 1))
-                    (let f2 (fib (- N 2))
-                        (+ f1 f2)
+    (defun fib (N)
+	    (
+            (if (or (= N 0) (= N 1)) 
+                1
+                (
+                    (let f1 (fib (- N 1))
+                        (let f2 (fib (- N 2))
+                            (+ f1 f2)
+                        )
                     )
                 )
             )
-        )
-    )
-    
-    (let mylist (
-		list (fib 10) (fib 11) (fib 12)
 		)
-
-	 mylist
-	)
-	
+    
+        (let mylist
+		    (
+		        list (fib 10) (fib 11) (fib 12)
+		    )
+            mylist
+	    )
 	)
 )
