@@ -44,14 +44,14 @@ Preferred language for implementation is F#.
 
 In the documentation, please mention explicitly which language features you have implemented:
 
-* [ ] Named variables (`let`)
-* [ ] Recursion
+* [x] Named variables (`let`)
+* [x] Recursion
 * [ ] Lazy evaluation
-* [ ] Functions
+* [x] Functions
 * [ ] Closures
 * [ ] Library functions: File IO
-* [ ] Lists / Sequences
-* [ ] Library functions: Lists/Sequences
+* [x] Lists / Sequences
+* [x] Library functions: Lists/Sequences
 
 ## Repository
 
