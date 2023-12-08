@@ -9,12 +9,19 @@ module Interpreter =
         | MNumber of float
         | MString of string
         | MList of MObject list
+        | MSeq of left:float * step:float * right:float
 
     let rec private interpretedTypeToString = function
         | MBool(b) -> if b then "True" else "False"
         | MNumber(n) -> n.ToString()
         | MString(s) -> s
-        | MList(l) -> "(" + (l |> List.map(fun el -> interpretedTypeToString el) |> String.concat " ")  + ")"
+        | MList(l) -> "(" + (l |> List.map (fun el -> interpretedTypeToString el) |> String.concat " ") + ")"
+        | MSeq (left, step, right) ->
+            let seqValues =
+                seq { for i in left .. step .. right do yield i }
+                |> Seq.map (fun v -> v.ToString())
+                |> String.concat " "
+            "{ " + seqValues + " }"
 
     type StateObject =
         | VariableState of value: MObject
@@ -25,11 +32,11 @@ module Interpreter =
         let varToStr = fun var ->
             match var with
                 | AstVariable(v) -> v
-                | _ -> failwith "Expexted AstVariable in fun variable declaration list"
+                | _ -> failwith "Expected AstVariable in fun variable declaration list"
 
         match lst with
             | AstList(ls) -> ls |> List.map varToStr
-            | _ -> failwith "Expected AstList for variable delcaration"
+            | _ -> failwith "Expected AstList for variable declaration"
 
     // Operators translation.
     let private funof = function
@@ -126,7 +133,9 @@ module Interpreter =
                         match objectFromStorage with
                         | MList(list) ->
                             match eval nth stateEnv with
-                            | MNumber(index) -> list.Item (index |> int)
+                            | MNumber(index) ->
+                                if (list.Length > int index) then list.Item (index |> int)
+                                else failwith "Index out of bounds"
                             | _ -> failwith "Incorrect index, number was expected"
                         | _ -> failwith "Incorrect variable, list is expected"
                     | _ -> let rec evalList expressions stateEnv acc =
@@ -137,6 +146,31 @@ module Interpreter =
                                    evalList rest stateEnv (acc @ [evaluated]) // Adding every calculated value to accumulator.
 
                            evalList expressions stateEnv []
+                           
+                | AstKeyword("seq") :: params ->
+                    match params with
+                    | AstVariable(command) :: seqName :: [] when command = "head" || command = "tail" ->
+                        let objectFromStorage = eval seqName stateEnv
+                        match objectFromStorage with
+                        | MSeq(left, step, right) ->
+                            if command = "head" then MNumber(left)
+                            else MSeq(left + step, step, right)
+                        | _ -> failwith "Incorrect variable, sequence is expected"
+                    | AstVariable(command) :: nth :: seqName :: [] when command = "item" ->
+                        let objectFromStorage = eval seqName stateEnv
+                        match objectFromStorage with
+                        | MSeq(left, step, right) ->
+                            match eval nth stateEnv with
+                            | MNumber(index) ->
+                                if left + index * step <= right then MNumber(left + index * step)
+                                else failwith "Index out of bounds"
+                            | _ -> failwith "Incorrect index, number was expected"
+                        | _ -> failwith "Incorrect variable, list is expected"
+                    | AstNumber(left) :: AstVariable("..") :: AstNumber(right) :: [] ->
+                        MSeq(left, 1, right)
+                    | AstNumber(left) :: AstVariable("..") :: AstNumber(step) :: AstVariable("..") :: AstNumber(right) :: [] ->
+                        MSeq(left, step, right)
+                    | _ -> failwith "Incorrect parameters provided"
 
                 | AstVariable(operation) :: elements ->
                     if elements.IsEmpty then
