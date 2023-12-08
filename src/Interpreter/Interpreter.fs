@@ -147,8 +147,8 @@ module Interpreter =
 
                            evalList expressions stateEnv []
                            
-                | AstKeyword("seq") :: params ->
-                    match params with
+                | AstKeyword("seq") :: parameters ->
+                    match parameters with
                     | AstVariable(command) :: seqName :: [] when command = "head" || command = "tail" ->
                         let objectFromStorage = eval seqName stateEnv
                         match objectFromStorage with
