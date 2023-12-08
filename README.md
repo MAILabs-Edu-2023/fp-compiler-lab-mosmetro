@@ -73,7 +73,9 @@ Do not forget to mention your team in the README.md file, specifying also who di
 
 Name | Role in the project
 ------------------|---------------------
-... | ...
+Levon Khorasandzhian | The creator of interpreter & tester of interpreter & editor of documentation
+Nikita Biryulin | The creator of parser & tester of parser & assistant with interpreter
+Vitaliy Cherkasskiy | The creator of interpreter & tester of interpreter & GitHub feature assistant
 
 <img src="https://soshnikov.com/images/byhuman_en.png" height="25px"/>
 
