@@ -9,27 +9,34 @@ module Interpreter =
         | MNumber of float
         | MString of string
         | MList of MObject list
+        | MSeq of left:float * step:float * right:float
 
     let rec private interpretedTypeToString = function
         | MBool(b) -> if b then "True" else "False"
         | MNumber(n) -> n.ToString()
         | MString(s) -> s
-        | MList(l) -> "(" + (l |> List.map(fun el -> interpretedTypeToString el) |> String.concat " ")  + ")"
+        | MList(l) -> "(" + (l |> List.map (fun el -> interpretedTypeToString el) |> String.concat " ") + ")"
+        | MSeq (left, step, right) ->
+            let seqValues =
+                seq { for i in left .. step .. right do yield i }
+                |> Seq.map (fun v -> v.ToString())
+                |> String.concat " "
+            "{ " + seqValues + " }"
 
     type StateObject =
         | VariableState of value: MObject
         | FunctionState of args: string list * ast: Ast * capturedState: Map<string, StateObject>
 
-    // Convert AstList<AstVariable> to string list
+    // Convert AstList<AstVariable> to string list.
     let rec private processFunArgs = fun lst ->
         let varToStr = fun var ->
             match var with
                 | AstVariable(v) -> v
-                | _ -> failwith "Expexted AstVariable in fun variable declaration list"
+                | _ -> failwith "Expected AstVariable in fun variable declaration list"
 
         match lst with
             | AstList(ls) -> ls |> List.map varToStr
-            | _ -> failwith "Expected AstList for variable delcaration"
+            | _ -> failwith "Expected AstList for variable declaration"
 
     // Operators translation.
     let private funof = function
@@ -98,7 +105,7 @@ module Interpreter =
                         | _ -> failwith "Variable name must be AstVariable"
 
                 | AstKeyword("defun") :: funName :: funVariables :: funcitonBody :: innerCodeArea ->
-                    let variables = processFunArgs funVariables // nothing fun about that
+                    let variables = processFunArgs funVariables
 
                     match funName with
                         | AstVariable(funName) -> eval (AstList innerCodeArea) (Map.add funName (FunctionState(variables, funcitonBody, stateEnv)) stateEnv)
@@ -113,14 +120,57 @@ module Interpreter =
                         eval falseBranch stateEnv
 
                 | AstKeyword("list") :: expressions ->
-                    let rec evalList expressions stateEnv acc =
-                        match expressions with
-                        | [] -> MList(acc)
-                        | exp :: rest ->
-                            let evaluated = eval exp stateEnv
-                            evalList rest stateEnv (acc @ [evaluated]) // Adding every calculated value to accumulator.
+                    match expressions with
+                    | AstVariable(command) :: listName :: [] when command = "head" || command = "tail" ->
+                        let objectFromStorage = eval listName stateEnv
+                        match objectFromStorage with
+                        | MList(list) ->
+                            if command = "head" then list.Head
+                            else MList(list.Tail)
+                        | _ -> failwith "Incorrect variable, list is expected"
+                    | AstVariable(command) :: nth :: listName :: [] when command = "item" ->
+                        let objectFromStorage = eval listName stateEnv
+                        match objectFromStorage with
+                        | MList(list) ->
+                            match eval nth stateEnv with
+                            | MNumber(index) ->
+                                if (list.Length > int index) then list.Item (index |> int)
+                                else failwith "Index out of bounds"
+                            | _ -> failwith "Incorrect index, number was expected"
+                        | _ -> failwith "Incorrect variable, list is expected"
+                    | _ -> let rec evalList expressions stateEnv acc =
+                               match expressions with
+                               | [] -> MList(acc)
+                               | exp :: rest ->
+                                   let evaluated = eval exp stateEnv
+                                   evalList rest stateEnv (acc @ [evaluated]) // Adding every calculated value to accumulator.
 
-                    evalList expressions stateEnv []
+                           evalList expressions stateEnv []
+                           
+                | AstKeyword("seq") :: parameters ->
+                    match parameters with
+                    | AstVariable(command) :: seqName :: [] when command = "head" || command = "tail" ->
+                        let objectFromStorage = eval seqName stateEnv
+                        match objectFromStorage with
+                        | MSeq(left, step, right) ->
+                            if command = "head" then MNumber(left)
+                            else MSeq(left + step, step, right)
+                        | _ -> failwith "Incorrect variable, sequence is expected"
+                    | AstVariable(command) :: nth :: seqName :: [] when command = "item" ->
+                        let objectFromStorage = eval seqName stateEnv
+                        match objectFromStorage with
+                        | MSeq(left, step, right) ->
+                            match eval nth stateEnv with
+                            | MNumber(index) ->
+                                if left + index * step <= right then MNumber(left + index * step)
+                                else failwith "Index out of bounds"
+                            | _ -> failwith "Incorrect index, number was expected"
+                        | _ -> failwith "Incorrect variable, list is expected"
+                    | AstNumber(left) :: AstVariable("..") :: AstNumber(right) :: [] ->
+                        MSeq(left, 1, right)
+                    | AstNumber(left) :: AstVariable("..") :: AstNumber(step) :: AstVariable("..") :: AstNumber(right) :: [] ->
+                        MSeq(left, step, right)
+                    | _ -> failwith "Incorrect parameters provided"
 
                 | AstVariable(operation) :: elements ->
                     if elements.IsEmpty then
@@ -131,10 +181,9 @@ module Interpreter =
                         match Map.tryFind operation stateEnv with
                         | Some(value) -> 
                             match value with
-                                | VariableState(v) -> failwith "Undeclared list? UB?"
                                 | FunctionState(_) -> executeFun value (MList astResults) stateEnv
+                                | _ -> failwith "Undefined behaviour"
                         | None -> funof operation astResults
-                        
 
                 | _ -> 
                     if lst.Length = 1 then

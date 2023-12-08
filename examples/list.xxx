@@ -13,11 +13,11 @@
             )
 		)
     
-        (let mylist
+        (let myList
 		    (
 		        list (fib 10) (fib 11) (fib 12)
 		    )
-            mylist
+            myList
 	    )
 	)
 )
