@@ -1,6 +1,8 @@
-﻿(let mySeq
-    (
-        seq 1 .. 3 .. 10
+﻿(
+    (let mySeq
+        (
+            seq 1 .. 3 .. 10
+        )
+        seq head (seq tail (seq tail (seq tail mySeq)))
     )
-    seq head (seq tail (seq tail (seq tail mySeq)))
 )

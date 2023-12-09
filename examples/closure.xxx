@@ -1,10 +1,12 @@
-(let x 4
-	(
-		(
-			defun getValue () (x)
-			(let x 6
-				getValue
-			)
-		)
-	)
+(
+    (let x 4
+        (
+            (
+                defun getValue () (x)
+                (let x 6
+                    getValue
+                )
+            )
+        )
+    )
 )
