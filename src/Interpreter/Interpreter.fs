@@ -197,6 +197,7 @@ module Interpreter =
     and private executeFun funObj args stateEnv = 
         let rec zip (a:'a list , b:'b list) : list<'a * 'b> =
             if List.length a = 1 then [List.head a , List.head b]
+            elif List.length a = 0 then []
             else (List.head a, List.head b) :: zip (List.tail a , List.tail b) 
 
         let rec insertArgs (args: (string * MObject) list, state: Map<string, StateObject>) = 
