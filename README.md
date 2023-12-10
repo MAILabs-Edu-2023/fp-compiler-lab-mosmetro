@@ -105,9 +105,9 @@ There are several supported functions starting with keywords ```file```:
 * write
 
 Syntax is here:
-* ```file create 'absolutePath'``` — create file in selected directory with requested name (must be written in the end).
-* ```file read 'absolutePath'``` — read file and return string.
-* ```file write 'absolutePath' 'textInfo'``` — append text to the file.
+* ```file create 'absolutePath'``` â€” create file in selected directory with requested name (must be written in the end).
+* ```file read 'absolutePath'``` â€” read file and return string.
+* ```file write 'absolutePath' 'textInfo'``` â€” append text to the file.
 
 > P.S. all library functions work with .txt format.
 
@@ -152,13 +152,12 @@ Syntax is here:
 ### Other samples
 [The folder](https://github.com/MAILabs-Edu-2023/fp-compiler-lab-mosmetro/tree/main/examples), containing samples for each feature.
 
-## Credits
+## MosMetro Team
 
-*MosMetro team:*
-Name | Role in the project
-------------------|---------------------
-Levon Khorasandzhian | The creator of interpreter & tester of interpreter & editor of documentation
-Nikita Biryulin | The creator of parser & tester of parser & assistant with interpreter
-Vitaliy Cherkasskiy | The creator of interpreter & tester of interpreter & GitHub feature assistant
+| Name                 | Role in the project                                                           |
+| ---                  | ---                                                                           |
+| Levon Khorasandzhian | The creator of interpreter & tester of interpreter & editor of documentation  |
+| Nikita Biryulin      | The creator of parser & tester of parser & assistant with interpreter         |
+| Vitaliy Cherkasskiy  | The creator of interpreter & tester of interpreter & GitHub feature assistant |
 
 <img src="https://soshnikov.com/images/byhuman_en.png" height="25px"/>
