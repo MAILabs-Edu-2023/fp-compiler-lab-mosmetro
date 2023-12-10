@@ -10,10 +10,10 @@
 
 * [x] Named variables (`let`)
 * [x] Recursion
-* [ ] Lazy evaluation
+* [x] Lazy evaluation
 * [x] Functions
 * [x] Closures
-* [ ] Library functions: File IO
+* [x] Library functions: File IO
 * [x] Lists / Sequences
 * [x] Library functions: Lists/Sequences
 
@@ -24,7 +24,92 @@
 * Stage 3: Writing sample programs and documentation
 
 ## Tutorial on the language
-> TODO: write down some tutorial about using every command here.
+
+### Operators
+
+All math and logic operations must be written in this way:
+```('operator' 'operand_1' 'operand_2')```.
+
+For example:
+* ```(+ 2 2)```
+* ```(or true false)```
+
+### Variables
+
+Variable must be declared with following syntax:
+```xxx
+(let 'varName' 'value' 'visible code area')
+```
+
+For example:
+* ```(let cost 150.25 (cost))```
+> P.S. in this case we're declaring variable cost with value 150.25 and permanently print it from the visible code area.
+
+### Functions
+Variable must be declared with following syntax:
+```xxx
+(defun 'funcName' ('varName_1' 'varName_2' 'varName_3'...) ('body of function') 'visible code area')
+```
+> P.S. obviously you can use  multiple variables, so just separate them with space.
+
+There are two types of collection: List and Sequence.
+
+#### List
+So, list must be declared in the _value section_ of ```let``` with following syntax:
+```xxx
+(list 'value_1' 'value_2' 'value_3'...)
+```
+
+For example:
+* ```(let myList (list 1 2 3) mylist)```
+> P.S. in this case we're declaring list and permanently print it from the visible code area.
+
+### Sequence
+The syntax is similar to List, but has two features of declaring:
+
+First one:
+```xxx
+(let mySeq (seq 'left' .. 'right'))
+```
+Second one:
+```xxx
+(let mySeq (seq 'left' .. 'step' .. 'right'))
+```
+
+> P.S. the first case is a special case of the second, but only with 'step' = 1
+
+Instead of List, Sequence holds in memory only triple parameters mentioned above. It uses lazy evaluation principle and starts enumerate values in selected range only when it's neccessary.
+
+### Library functions
+
+#### List & Sequence
+
+There are several supported functions starting with keywords ```list``` or ```seq```:
+
+* head
+* tail
+* item
+
+Syntax is here:
+* ```list/seq head/tail 'collectionName'```
+* ```list/seq item 'collectionIndex' 'collectionName'```
+
+> P. S. symbol '/' means 'or', so choose one of them.
+
+#### File
+
+There are several supported functions starting with keywords ```file```:
+
+* create
+* read
+* write
+
+Syntax is here:
+* ```file create 'absolutePath'``` — create file in selected directory with requested name (must be written in the end).
+* ```file read 'absolutePath'``` — read file and return string.
+* ```file write 'absolutePath' 'textInfo'``` — append text to the file.
+
+> P.S. all library functions work with .txt format.
 
 ## Code samples on eXXXtra
 
