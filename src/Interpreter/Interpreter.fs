@@ -1,5 +1,7 @@
 ﻿namespace Interpreter
 
+open System
+open System.IO
 open Parser
 
 module Interpreter = 
@@ -32,11 +34,11 @@ module Interpreter =
         let varToStr = fun var ->
             match var with
                 | AstVariable(v) -> v
-                | _ -> failwith "Expected AstVariable in fun variable declaration list"
+                | _ -> failwith "AstVariable expected in fun variable declaration list"
 
         match lst with
             | AstList(ls) -> ls |> List.map varToStr
-            | _ -> failwith "Expected AstList for variable declaration"
+            | _ -> failwith "AstList expected for variable declaration"
 
     // Operators translation.
     let private funof = function
@@ -127,7 +129,7 @@ module Interpreter =
                         | MList(list) ->
                             if command = "head" then list.Head
                             else MList(list.Tail)
-                        | _ -> failwith "Incorrect variable, list is expected"
+                        | _ -> failwith "Incorrect variable, list expected"
                     | AstVariable(command) :: nth :: listName :: [] when command = "item" ->
                         let objectFromStorage = eval listName stateEnv
                         match objectFromStorage with
@@ -136,8 +138,8 @@ module Interpreter =
                             | MNumber(index) ->
                                 if (list.Length > int index) then list.Item (index |> int)
                                 else failwith "Index out of bounds"
-                            | _ -> failwith "Incorrect index, number was expected"
-                        | _ -> failwith "Incorrect variable, list is expected"
+                            | _ -> failwith "Incorrect index, number expected"
+                        | _ -> failwith "Incorrect variable, list expected"
                     | _ -> let rec evalList expressions stateEnv acc =
                                match expressions with
                                | [] -> MList(acc)
@@ -155,7 +157,7 @@ module Interpreter =
                         | MSeq(left, step, right) ->
                             if command = "head" then MNumber(left)
                             else MSeq(left + step, step, right)
-                        | _ -> failwith "Incorrect variable, sequence is expected"
+                        | _ -> failwith "Incorrect variable, sequence expected"
                     | AstVariable(command) :: nth :: seqName :: [] when command = "item" ->
                         let objectFromStorage = eval seqName stateEnv
                         match objectFromStorage with
@@ -164,12 +166,66 @@ module Interpreter =
                             | MNumber(index) ->
                                 if left + index * step <= right then MNumber(left + index * step)
                                 else failwith "Index out of bounds"
-                            | _ -> failwith "Incorrect index, number was expected"
-                        | _ -> failwith "Incorrect variable, list is expected"
+                            | _ -> failwith "Incorrect index, number expected"
+                        | _ -> failwith "Incorrect variable, list expected"
                     | AstNumber(left) :: AstVariable("..") :: AstNumber(right) :: [] ->
                         MSeq(left, 1, right)
                     | AstNumber(left) :: AstVariable("..") :: AstNumber(step) :: AstVariable("..") :: AstNumber(right) :: [] ->
                         MSeq(left, step, right)
+                    | _ -> failwith "Incorrect parameters provided"
+                    
+                | AstKeyword("file") :: parameters ->
+                    match parameters with
+                    | AstVariable(command) :: path :: [] when command = "create" ->
+                        match eval path stateEnv with
+                        | MString(stringPath) ->
+                            let fullPath =
+                                    Path.Combine(
+                                        Path.GetPathRoot(Environment.SystemDirectory),
+                                        stringPath)
+                                    
+                            File.AppendAllText(fullPath, String.Empty)
+                            MString("File successfully created\n")
+                        | _ -> failwith "Undefined behaviour"
+                    | AstVariable(command) :: path :: [] when command = "read" ->
+                        match eval path stateEnv with
+                        | MString(stringPath) ->
+                            try
+                                let fullPath =
+                                    Path.Combine(
+                                        Path.GetPathRoot(Environment.SystemDirectory),
+                                        stringPath)
+
+                                let internals = File.ReadAllText(fullPath)
+                                MString(internals)
+                            with
+                            | ex -> failwith ("Problem occured: " + ex.Message)
+                        | _ -> failwith "Undefined behaviour"
+                    | AstVariable(command) :: path :: varName :: [] when command = "write" ->
+                        match eval path stateEnv with
+                        | MString(stringPath) ->
+                            try
+                                let fullPath =
+                                    Path.Combine(
+                                        Path.GetPathRoot(Environment.SystemDirectory),
+                                        stringPath)
+                                    
+                                match varName with
+                                | AstVariable _ ->
+                                    let actualText = eval varName stateEnv
+                                    match actualText with
+                                    | MString(s) ->
+                                        File.AppendAllText(fullPath, s)
+                                        MString("Lines successfully appended\n")
+                                    | _ -> failwith "Undefined behaviour"
+                                | AstString(s) ->
+                                    File.AppendAllText(fullPath, s)
+                                    let internals = File.ReadAllText(fullPath)
+                                    MString(internals)
+                                | _ -> failwith "Undefined behaviour"
+                            with
+                            | ex -> failwith ("Problem occured: " + ex.Message)
+                        | _ -> failwith "Undefined behaviour"
                     | _ -> failwith "Incorrect parameters provided"
 
                 | AstVariable(operation) :: elements ->
