@@ -1,0 +1,16 @@
+.stay-tuned-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: linear-gradient(to bottom, #8e44ad, #c0392b);
+  color: #ffffff;
+  text-decoration: none;
+  border-radius: 5px;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.stay-tuned-btn:hover {
+  background: linear-gradient(to bottom, #9b59b6, #e74c3c);
+}
