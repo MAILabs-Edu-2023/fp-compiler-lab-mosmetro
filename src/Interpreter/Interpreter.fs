@@ -220,8 +220,7 @@ module Interpreter =
                                     | _ -> failwith "Undefined behaviour"
                                 | AstString(s) ->
                                     File.AppendAllText(fullPath, s)
-                                    let internals = File.ReadAllText(fullPath)
-                                    MString(internals)
+                                    MString("Lines successfully appended\n")
                                 | _ -> failwith "Undefined behaviour"
                             with
                             | ex -> failwith ("Problem occured: " + ex.Message)
