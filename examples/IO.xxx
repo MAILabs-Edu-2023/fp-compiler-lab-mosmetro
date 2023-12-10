@@ -1,0 +1,11 @@
+﻿(
+    (let myPath ("C:\Users\user\source\text.txt")
+        (let myNewText ("Hello, World!")
+            (file write myPath myNewText)
+            
+            (let myFile (file read myPath)
+                myFile
+            )
+        )
+    )
+)

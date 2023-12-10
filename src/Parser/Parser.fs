@@ -3,7 +3,7 @@
 open FParsec
 
 // Simple FParsec-based parser
-// Not the most obious code (lib has a very rich API), but it's quite elegant and functional
+// Not the most obvious code (lib has a very rich API), but it's quite elegant and functional
 
 type Ast = 
     | AstBool of bool // true/false
@@ -11,7 +11,7 @@ type Ast =
     | AstString of string // "string"
     | AstKeyword of string // defun, let
     | AstVariable of string // fibonacchi/N/wtf - everything that is not a string or a keyword
-    | AstList of List<Ast> // Not an actual list as a data structure, just AST abstaction
+    | AstList of List<Ast> // Not an actual list as a data structure, just AST abstraction
 
 
 
@@ -41,10 +41,11 @@ module Parser =
     let private astKeywordLet = stringReturn "let" <| AstKeyword "let" .>> spaces
     let private astKeywordList = stringReturn "list" <| AstKeyword "list" .>> spaces
     let private astKeywordSeq = stringReturn "seq" <| AstKeyword "seq" .>> spaces
+    let private astKeywordFile = stringReturn "file" <| AstKeyword "file" .>> spaces
 
     let private astKeywordIf = stringReturn "if" <| AstKeyword "if" .>> spaces
 
-    let private astKeyword = astKeywordDefun <|> astKeywordLet <|> astKeywordList <|> astKeywordSeq <|> astKeywordIf
+    let private astKeyword = astKeywordDefun <|> astKeywordLet <|> astKeywordList <|> astKeywordSeq <|> astKeywordIf <|> astKeywordFile
 
     let private astVariable = many1Chars (noneOf "\"\\ ()\n") .>> spaces |>> AstVariable
 
